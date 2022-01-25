@@ -1,5 +1,13 @@
 import gc
 import ctypes
+from ctypes import (
+    c_int,
+    c_int64,
+    c_int32,
+    c_void_p,
+    pythonapi,
+)
+from typing import Callable
 import inspect
 from functools import wraps
 from collections import defaultdict
@@ -11,8 +19,7 @@ __version__ = '0.1.4'
 
 __all__ = 'curse', 'curses', 'reverse'
 
-Py_ssize_t = ctypes.c_int64 if ctypes.sizeof(
-    ctypes.c_void_p) == 8 else ctypes.c_int32
+Py_ssize_t = c_int64 if ctypes.sizeof(c_void_p) == 8 else c_int32
 
 # dictionary holding references to the allocated function resolution
 # arrays to type objects
@@ -34,18 +41,18 @@ class PyFile(ctypes.Structure):
 
 
 PyObject_p = ctypes.py_object
-Inquiry_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p)
+Inquiry_p = ctypes.CFUNCTYPE(c_int, PyObject_p)
 # return type is void* to allow ctypes to convert python integers to
 # plain PyObject*
 UnaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p)
 BinaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, PyObject_p)
-TernaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, PyObject_p,
-                                 PyObject_p)
+TernaryFunc_p = ctypes.CFUNCTYPE(
+    ctypes.py_object, PyObject_p, PyObject_p, PyObject_p
+)
 LenFunc_p = ctypes.CFUNCTYPE(Py_ssize_t, PyObject_p)
 SSizeArgFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, Py_ssize_t)
-SSizeObjArgProc_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, Py_ssize_t,
-                                     PyObject_p)
-ObjObjProc_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, PyObject_p)
+SSizeObjArgProc_p = ctypes.CFUNCTYPE(c_int, PyObject_p, Py_ssize_t, PyObject_p)
+ObjObjProc_p = ctypes.CFUNCTYPE(c_int, PyObject_p, PyObject_p)
 
 FILE_p = ctypes.POINTER(PyFile)
 
@@ -53,10 +60,11 @@ FILE_p = ctypes.POINTER(PyFile)
 def get_not_implemented():
     namespace = {}
     name = "_Py_NotImplmented"
+    # noinspection PyProtectedMember
     not_implemented = ctypes.cast(
-        ctypes.pythonapi._Py_NotImplementedStruct, ctypes.py_object)
+        pythonapi._Py_NotImplementedStruct, ctypes.py_object)
 
-    ctypes.pythonapi.PyDict_SetItem(
+    pythonapi.PyDict_SetItem(
         ctypes.py_object(namespace),
         ctypes.py_object(name),
         not_implemented
@@ -87,7 +95,7 @@ class PyNumberMethods(ctypes.Structure):
         ('nb_xor', BinaryFunc_p),
         ('nb_or', BinaryFunc_p),
         ('nb_int', UnaryFunc_p),
-        ('nb_reserved', ctypes.c_void_p),
+        ('nb_reserved', c_void_p),
         ('nb_float', UnaryFunc_p),
 
         ('nb_inplace_add', BinaryFunc_p),
@@ -119,9 +127,9 @@ class PySequenceMethods(ctypes.Structure):
         ('sq_concat', BinaryFunc_p),
         ('sq_repeat', SSizeArgFunc_p),
         ('sq_item', SSizeArgFunc_p),
-        ('was_sq_slice', ctypes.c_void_p),
+        ('was_sq_slice', c_void_p),
         ('sq_ass_item', SSizeObjArgProc_p),
-        ('was_sq_ass_slice', ctypes.c_void_p),
+        ('was_sq_ass_slice', c_void_p),
         ('sq_contains', ObjObjProc_p),
         ('sq_inplace_concat', BinaryFunc_p),
         ('sq_inplace_repeat', SSizeArgFunc_p),
@@ -145,6 +153,7 @@ PyObject._fields_ = [
     ('ob_type', ctypes.POINTER(PyTypeObject)),
 ]
 
+# noinspection SpellCheckingInspection
 PyTypeObject._fields_ = [
     # varhead
     ('ob_base', PyObject),
@@ -155,42 +164,42 @@ PyTypeObject._fields_ = [
     ('tp_itemsize', Py_ssize_t),
     ('tp_dealloc', ctypes.CFUNCTYPE(None, PyObject_p)),
     ('printfunc',
-     ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, FILE_p, ctypes.c_int)),
+     ctypes.CFUNCTYPE(c_int, PyObject_p, FILE_p, c_int)),
     ('getattrfunc', ctypes.CFUNCTYPE(PyObject_p, PyObject_p, ctypes.c_char_p)),
     ('setattrfunc',
-     ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, ctypes.c_char_p, PyObject_p)),
+     ctypes.CFUNCTYPE(c_int, PyObject_p, ctypes.c_char_p, PyObject_p)),
     ('tp_as_async', ctypes.CFUNCTYPE(PyAsyncMethods)),
     ('tp_repr', ctypes.CFUNCTYPE(PyObject_p, PyObject_p)),
     ('tp_as_number', ctypes.POINTER(PyNumberMethods)),
     ('tp_as_sequence', ctypes.POINTER(PySequenceMethods)),
     ('tp_as_mapping', ctypes.POINTER(PyMappingMethods)),
-    ('tp_hash', ctypes.CFUNCTYPE(ctypes.c_int64, PyObject_p)),
+    ('tp_hash', ctypes.CFUNCTYPE(c_int64, PyObject_p)),
     ('tp_call',
      ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, PyObject_p)),
     ('tp_str', ctypes.CFUNCTYPE(PyObject_p, PyObject_p)),
-    ('tp_getattro', ctypes.c_void_p),  # Type not declared yet
-    ('tp_setattro', ctypes.c_void_p),  # Type not declared yet
-    ('tp_as_buffer', ctypes.c_void_p),  # Type not declared yet
-    ('tp_flags', ctypes.c_void_p),  # Type not declared yet
-    ('tp_doc', ctypes.c_void_p),  # Type not declared yet
-    ('tp_traverse', ctypes.c_void_p),  # Type not declared yet
-    ('tp_clear', ctypes.c_void_p),  # Type not declared yet
-    ('tp_richcompare', ctypes.c_void_p),  # Type not declared yet
-    ('tp_weaklistoffset', ctypes.c_void_p),  # Type not declared yet
-    ('tp_iter', ctypes.c_void_p),  # Type not declared yet
-    ('iternextfunc', ctypes.c_void_p),  # Type not declared yet
-    ('tp_methods', ctypes.c_void_p),  # Type not declared yet
-    ('tp_members', ctypes.c_void_p),  # Type not declared yet
-    ('tp_getset', ctypes.c_void_p),  # Type not declared yet
-    ('tp_base', ctypes.c_void_p),  # Type not declared yet
-    ('tp_dict', ctypes.c_void_p),  # Type not declared yet
-    ('tp_descr_get', ctypes.c_void_p),  # Type not declared yet
-    ('tp_descr_set', ctypes.c_void_p),  # Type not declared yet
-    ('tp_dictoffset', ctypes.c_void_p),  # Type not declared yet
-    ('tp_init', ctypes.c_void_p),  # Type not declared yet
-    ('tp_alloc', ctypes.c_void_p),  # Type not declared yet
+    ('tp_getattro', c_void_p),  # Type not declared yet
+    ('tp_setattro', c_void_p),  # Type not declared yet
+    ('tp_as_buffer', c_void_p),  # Type not declared yet
+    ('tp_flags', c_void_p),  # Type not declared yet
+    ('tp_doc', c_void_p),  # Type not declared yet
+    ('tp_traverse', c_void_p),  # Type not declared yet
+    ('tp_clear', c_void_p),  # Type not declared yet
+    ('tp_richcompare', c_void_p),  # Type not declared yet
+    ('tp_weaklistoffset', c_void_p),  # Type not declared yet
+    ('tp_iter', c_void_p),  # Type not declared yet
+    ('iternextfunc', c_void_p),  # Type not declared yet
+    ('tp_methods', c_void_p),  # Type not declared yet
+    ('tp_members', c_void_p),  # Type not declared yet
+    ('tp_getset', c_void_p),  # Type not declared yet
+    ('tp_base', c_void_p),  # Type not declared yet
+    ('tp_dict', c_void_p),  # Type not declared yet
+    ('tp_descr_get', c_void_p),  # Type not declared yet
+    ('tp_descr_set', c_void_p),  # Type not declared yet
+    ('tp_dictoffset', c_void_p),  # Type not declared yet
+    ('tp_init', c_void_p),  # Type not declared yet
+    ('tp_alloc', c_void_p),  # Type not declared yet
     ('tp_new',
-     ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, ctypes.c_void_p)),
+     ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, c_void_p)),
     # More struct fields follow but aren't declared here yet ...
 ]
 
@@ -227,6 +236,7 @@ __dir__ = dir
 __builtin__.dir = __filtered_dir__
 
 # build override information for dunder methods
+# noinspection SpellCheckingInspection
 as_number = ('tp_as_number', [
     ("add", "nb_add"),
     ("sub", "nb_subtract"),
@@ -265,6 +275,7 @@ as_number = ('tp_as_number', [
     ("imatmul", "nb_inplace_matrix_multiply"),
 ])
 
+# noinspection SpellCheckingInspection
 as_sequence = ("tp_as_sequence", [
     ("len", "sq_length"),
     ("concat", "sq_concat"),
@@ -298,10 +309,11 @@ def _is_dunder(func_name):
     return func_name.startswith("__") and func_name.endswith("__")
 
 
+# noinspection PyProtectedMember,PyUnboundLocalVariable
 def _curse_special(klass, attr, func):
     """
-    Curse one of the "dunder" methods, i.e. methods beginning with __ which have a
-    precial resolution code path
+    Curse one of the "dunder" methods, i.e. methods beginning with __ which have
+    a precial resolution code path
     """
     assert callable(func)
 
@@ -316,14 +328,15 @@ def _curse_special(klass, attr, func):
         except NotImplementedError:
             return NotImplementedRet
 
+    nonlocal tp_as_name, impl_method
     tp_as_name, impl_method = override_dict[attr]
 
     # get the pointer to the correct tp_as_* structure
     # or create it if it doesn't exist
-    tyobj = PyTypeObject.from_address(id(klass))
+    type_obj = PyTypeObject.from_address(id(klass))
     if tp_as_name in PyTypeObject_as_types_dict:
         struct_ty = PyTypeObject_as_types_dict[tp_as_name]
-        tp_as_ptr = getattr(tyobj, tp_as_name)
+        tp_as_ptr = getattr(type_obj, tp_as_name)
         if not tp_as_ptr:
             # allocate new array
             tp_as_obj = struct_ty()
@@ -331,13 +344,13 @@ def _curse_special(klass, attr, func):
             tp_as_new_ptr = ctypes.cast(ctypes.addressof(tp_as_obj),
                                         ctypes.POINTER(struct_ty))
 
-            setattr(tyobj, tp_as_name, tp_as_new_ptr)
+            setattr(type_obj, tp_as_name, tp_as_new_ptr)
         tp_as = tp_as_ptr[0]
 
         # find the C function type
-        for fname, ftype in struct_ty._fields_:
-            if fname == impl_method:
-                cfunc_t = ftype
+        for field_name, field_type in struct_ty._fields_:
+            if field_name == impl_method:
+                cfunc_t = field_type
 
         cfunc = cfunc_t(wrapper)
         tp_func_dict[(klass, attr)] = cfunc
@@ -345,35 +358,37 @@ def _curse_special(klass, attr, func):
         setattr(tp_as, impl_method, cfunc)
     else:
         # find the C function type
-        for fname, ftype in PyTypeObject._fields_:
-            if fname == impl_method:
-                cfunc_t = ftype
+        for field_name, field_type in PyTypeObject._fields_:
+            if field_name == impl_method:
+                cfunc_t = field_type
 
         if not (klass, attr) in tp_as_dict:
-            tp_as_dict[(klass, attr)] = ctypes.cast(getattr(tyobj, impl_method),
-                                                    cfunc_t)
+            tp_as_dict[(klass, attr)] = ctypes.cast(
+                getattr(type_obj, impl_method), cfunc_t)
 
         # override function call
         cfunc = cfunc_t(wrapper)
         tp_func_dict[(klass, attr)] = cfunc
-        setattr(tyobj, impl_method, cfunc)
+        setattr(type_obj, impl_method, cfunc)
 
 
+# noinspection PyUnboundLocalVariable,PyProtectedMember
 def _revert_special(klass, attr):
+    nonlocal tp_as_name, impl_method
     tp_as_name, impl_method = override_dict[attr]
-    tyobj = PyTypeObject.from_address(id(klass))
-    tp_as_ptr = getattr(tyobj, tp_as_name)
+    type_obj = PyTypeObject.from_address(id(klass))
+    tp_as_ptr = getattr(type_obj, tp_as_name)
     if tp_as_ptr:
         if tp_as_name in PyTypeObject_as_types_dict:
             tp_as = tp_as_ptr[0]
 
             struct_ty = PyTypeObject_as_types_dict[tp_as_name]
-            for fname, ftype in struct_ty._fields_:
-                if fname == impl_method:
-                    cfunc_t = ftype
+            for field_name, field_type in struct_ty._fields_:
+                if field_name == impl_method:
+                    cfunc_t = field_type
 
             setattr(tp_as, impl_method,
-                    ctypes.cast(ctypes.c_void_p(None), cfunc_t))
+                    ctypes.cast(c_void_p(None), cfunc_t))
         else:
             if not (klass, attr) in tp_as_dict:
                 # we didn't save this pointer
@@ -381,32 +396,33 @@ def _revert_special(klass, attr):
                 return
 
             cfunc = tp_as_dict[(klass, attr)]
-            setattr(tyobj, impl_method, cfunc)
+            setattr(type_obj, impl_method, cfunc)
 
 
 def curse(klass, attr, value, hide_from_dir=False):
+    # noinspection PyUnresolvedReferences, SpellCheckingInspection
     """Curse a built-in `klass` with `attr` set to `value`
 
-    This function monkey-patches the built-in python object `attr` adding a new
-    attribute to it. You can add any kind of argument to the `class`.
+        This function monkey-patches the built-in python object `attr` adding a
+        new attribute to it. You can add any kind of argument to the `class`.
 
-    It's possible to attach methods as class methods, just do the following:
+        It's possible to attach methods as class methods, just do the following:
 
-      >>> def myclassmethod(cls):
-      ...     return cls(1.5)
-      >>> curse(float, "myclassmethod", classmethod(myclassmethod))
-      >>> float.myclassmethod()
-      1.5
+          >>> def myclassmethod(cls):
+          ...     return cls(1.5)
+          >>> curse(float, "myclassmethod", classmethod(myclassmethod))
+          >>> float.myclassmethod()
+          1.5
 
-    Methods will be automatically bound, so don't forget to add a self
-    parameter to them, like this:
+        Methods will be automatically bound, so don't forget to add a self
+        parameter to them, like this:
 
-      >>> def hello(self):
-      ...     return self * 2
-      >>> curse(str, "hello", hello)
-      >>> "yo".hello()
-      "yoyo"
-    """
+          >>> def hello(self):
+          ...     return self * 2
+          >>> curse(str, "hello", hello)
+          >>> "yo".hello()
+          "yoyo"
+        """
     if _is_dunder(attr):
         _curse_special(klass, attr, value)
         return
@@ -432,7 +448,7 @@ def curse(klass, attr, value, hide_from_dir=False):
         except AttributeError:
             pass
 
-    ctypes.pythonapi.PyType_Modified(ctypes.py_object(klass))
+    pythonapi.PyType_Modified(ctypes.py_object(klass))
 
     if hide_from_dir:
         __hidden_elements__[klass.__name__].append(attr)
@@ -467,10 +483,11 @@ def reverse(klass, attr):
     dikt = patchable_builtin(klass)
     del dikt[attr]
 
-    ctypes.pythonapi.PyType_Modified(ctypes.py_object(klass))
+    pythonapi.PyType_Modified(ctypes.py_object(klass))
 
 
 def curses(klass, name):
+    # noinspection PyUnresolvedReferences, SpellCheckingInspection
     """Decorator to add decorated method named `name` the class `klass`
 
     So you can use it like this:
