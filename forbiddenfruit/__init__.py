@@ -11,9 +11,8 @@ __version__ = '0.1.4'
 
 __all__ = 'curse', 'curses', 'reverse'
 
-
-Py_ssize_t = ctypes.c_int64 if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_int32
-
+Py_ssize_t = ctypes.c_int64 if ctypes.sizeof(
+    ctypes.c_void_p) == 8 else ctypes.c_int32
 
 # dictionary holding references to the allocated function resolution
 # arrays to type objects
@@ -29,8 +28,10 @@ class PyObject(ctypes.Structure):
     def decref(self):
         self.ob_refcnt -= 1
 
+
 class PyFile(ctypes.Structure):
     pass
+
 
 PyObject_p = ctypes.py_object
 Inquiry_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p)
@@ -38,10 +39,12 @@ Inquiry_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p)
 # plain PyObject*
 UnaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p)
 BinaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, PyObject_p)
-TernaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, PyObject_p, PyObject_p)
+TernaryFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, PyObject_p,
+                                 PyObject_p)
 LenFunc_p = ctypes.CFUNCTYPE(Py_ssize_t, PyObject_p)
 SSizeArgFunc_p = ctypes.CFUNCTYPE(ctypes.py_object, PyObject_p, Py_ssize_t)
-SSizeObjArgProc_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, Py_ssize_t, PyObject_p)
+SSizeObjArgProc_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, Py_ssize_t,
+                                     PyObject_p)
 ObjObjProc_p = ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, PyObject_p)
 
 FILE_p = ctypes.POINTER(PyFile)
@@ -64,49 +67,51 @@ def get_not_implemented():
 # address of the _Py_NotImplementedStruct singleton
 NotImplementedRet = get_not_implemented()
 
+
 class PyNumberMethods(ctypes.Structure):
     _fields_ = [
-    ('nb_add', BinaryFunc_p),
-    ('nb_subtract', BinaryFunc_p),
-    ('nb_multiply', BinaryFunc_p),
-    ('nb_remainder', BinaryFunc_p),
-    ('nb_divmod', BinaryFunc_p),
-    ('nb_power', BinaryFunc_p),
-    ('nb_negative', UnaryFunc_p),
-    ('nb_positive', UnaryFunc_p),
-    ('nb_absolute', UnaryFunc_p),
-    ('nb_bool', Inquiry_p),
-    ('nb_invert', UnaryFunc_p),
-    ('nb_lshift', BinaryFunc_p),
-    ('nb_rshift', BinaryFunc_p),
-    ('nb_and', BinaryFunc_p),
-    ('nb_xor', BinaryFunc_p),
-    ('nb_or', BinaryFunc_p),
-    ('nb_int', UnaryFunc_p),
-    ('nb_reserved', ctypes.c_void_p),
-    ('nb_float', UnaryFunc_p),
+        ('nb_add', BinaryFunc_p),
+        ('nb_subtract', BinaryFunc_p),
+        ('nb_multiply', BinaryFunc_p),
+        ('nb_remainder', BinaryFunc_p),
+        ('nb_divmod', BinaryFunc_p),
+        ('nb_power', BinaryFunc_p),
+        ('nb_negative', UnaryFunc_p),
+        ('nb_positive', UnaryFunc_p),
+        ('nb_absolute', UnaryFunc_p),
+        ('nb_bool', Inquiry_p),
+        ('nb_invert', UnaryFunc_p),
+        ('nb_lshift', BinaryFunc_p),
+        ('nb_rshift', BinaryFunc_p),
+        ('nb_and', BinaryFunc_p),
+        ('nb_xor', BinaryFunc_p),
+        ('nb_or', BinaryFunc_p),
+        ('nb_int', UnaryFunc_p),
+        ('nb_reserved', ctypes.c_void_p),
+        ('nb_float', UnaryFunc_p),
 
-    ('nb_inplace_add', BinaryFunc_p),
-    ('nb_inplace_subtract', BinaryFunc_p),
-    ('nb_inplace_multiply', BinaryFunc_p),
-    ('nb_inplace_remainder', BinaryFunc_p),
-    ('nb_inplace_power', TernaryFunc_p),
-    ('nb_inplace_lshift', BinaryFunc_p),
-    ('nb_inplace_rshift', BinaryFunc_p),
-    ('nb_inplace_and', BinaryFunc_p),
-    ('nb_inplace_xor', BinaryFunc_p),
-    ('nb_inplace_or', BinaryFunc_p),
+        ('nb_inplace_add', BinaryFunc_p),
+        ('nb_inplace_subtract', BinaryFunc_p),
+        ('nb_inplace_multiply', BinaryFunc_p),
+        ('nb_inplace_remainder', BinaryFunc_p),
+        ('nb_inplace_power', TernaryFunc_p),
+        ('nb_inplace_lshift', BinaryFunc_p),
+        ('nb_inplace_rshift', BinaryFunc_p),
+        ('nb_inplace_and', BinaryFunc_p),
+        ('nb_inplace_xor', BinaryFunc_p),
+        ('nb_inplace_or', BinaryFunc_p),
 
-    ('nb_floor_divide', BinaryFunc_p),
-    ('nb_true_divide', BinaryFunc_p),
-    ('nb_inplace_floor_divide', BinaryFunc_p),
-    ('nb_inplace_true_divide', BinaryFunc_p),
+        ('nb_floor_divide', BinaryFunc_p),
+        ('nb_true_divide', BinaryFunc_p),
+        ('nb_inplace_floor_divide', BinaryFunc_p),
+        ('nb_inplace_true_divide', BinaryFunc_p),
 
-    ('nb_index', BinaryFunc_p),
+        ('nb_index', BinaryFunc_p),
 
-    ('nb_matrix_multiply', BinaryFunc_p),
-    ('nb_inplace_matrix_multiply', BinaryFunc_p),
+        ('nb_matrix_multiply', BinaryFunc_p),
+        ('nb_inplace_matrix_multiply', BinaryFunc_p),
     ]
+
 
 class PySequenceMethods(ctypes.Structure):
     _fields_ = [
@@ -122,11 +127,14 @@ class PySequenceMethods(ctypes.Structure):
         ('sq_inplace_repeat', SSizeArgFunc_p),
     ]
 
+
 class PyMappingMethods(ctypes.Structure):
     pass
 
+
 class PyTypeObject(ctypes.Structure):
     pass
+
 
 class PyAsyncMethods(ctypes.Structure):
     pass
@@ -146,16 +154,19 @@ PyTypeObject._fields_ = [
     ('tp_basicsize', Py_ssize_t),
     ('tp_itemsize', Py_ssize_t),
     ('tp_dealloc', ctypes.CFUNCTYPE(None, PyObject_p)),
-    ('printfunc', ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, FILE_p, ctypes.c_int)),
+    ('printfunc',
+     ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, FILE_p, ctypes.c_int)),
     ('getattrfunc', ctypes.CFUNCTYPE(PyObject_p, PyObject_p, ctypes.c_char_p)),
-    ('setattrfunc', ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, ctypes.c_char_p, PyObject_p)),
+    ('setattrfunc',
+     ctypes.CFUNCTYPE(ctypes.c_int, PyObject_p, ctypes.c_char_p, PyObject_p)),
     ('tp_as_async', ctypes.CFUNCTYPE(PyAsyncMethods)),
     ('tp_repr', ctypes.CFUNCTYPE(PyObject_p, PyObject_p)),
     ('tp_as_number', ctypes.POINTER(PyNumberMethods)),
     ('tp_as_sequence', ctypes.POINTER(PySequenceMethods)),
     ('tp_as_mapping', ctypes.POINTER(PyMappingMethods)),
     ('tp_hash', ctypes.CFUNCTYPE(ctypes.c_int64, PyObject_p)),
-    ('tp_call', ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, PyObject_p)),
+    ('tp_call',
+     ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, PyObject_p)),
     ('tp_str', ctypes.CFUNCTYPE(PyObject_p, PyObject_p)),
     ('tp_getattro', ctypes.c_void_p),  # Type not declared yet
     ('tp_setattro', ctypes.c_void_p),  # Type not declared yet
@@ -178,10 +189,10 @@ PyTypeObject._fields_ = [
     ('tp_dictoffset', ctypes.c_void_p),  # Type not declared yet
     ('tp_init', ctypes.c_void_p),  # Type not declared yet
     ('tp_alloc', ctypes.c_void_p),  # Type not declared yet
-    ('tp_new', ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, ctypes.c_void_p)),
+    ('tp_new',
+     ctypes.CFUNCTYPE(PyObject_p, PyObject_p, PyObject_p, ctypes.c_void_p)),
     # More struct fields follow but aren't declared here yet ...
 ]
-
 
 # redundant dict of pointee types, because ctypes doesn't allow us
 # to extract the pointee type from the pointer
@@ -208,6 +219,7 @@ def __filtered_dir__(obj=None):
         calling_frame = inspect.currentframe().f_back
         return sorted(calling_frame.f_locals.keys())
     return sorted(set(__dir__(obj)).difference(__hidden_elements__[name]))
+
 
 # Switching to the custom dir impl declared above
 __hidden_elements__ = defaultdict(list)
@@ -317,7 +329,7 @@ def _curse_special(klass, attr, func):
             tp_as_obj = struct_ty()
             tp_as_dict[(klass, attr)] = tp_as_obj
             tp_as_new_ptr = ctypes.cast(ctypes.addressof(tp_as_obj),
-                ctypes.POINTER(struct_ty))
+                                        ctypes.POINTER(struct_ty))
 
             setattr(tyobj, tp_as_name, tp_as_new_ptr)
         tp_as = tp_as_ptr[0]
@@ -338,12 +350,14 @@ def _curse_special(klass, attr, func):
                 cfunc_t = ftype
 
         if not (klass, attr) in tp_as_dict:
-            tp_as_dict[(klass, attr)] = ctypes.cast(getattr(tyobj, impl_method), cfunc_t)
+            tp_as_dict[(klass, attr)] = ctypes.cast(getattr(tyobj, impl_method),
+                                                    cfunc_t)
 
         # override function call
         cfunc = cfunc_t(wrapper)
         tp_func_dict[(klass, attr)] = cfunc
         setattr(tyobj, impl_method, cfunc)
+
 
 def _revert_special(klass, attr):
     tp_as_name, impl_method = override_dict[attr]
@@ -359,7 +373,7 @@ def _revert_special(klass, attr):
                     cfunc_t = ftype
 
             setattr(tp_as, impl_method,
-                ctypes.cast(ctypes.c_void_p(None), cfunc_t))
+                    ctypes.cast(ctypes.c_void_p(None), cfunc_t))
         else:
             if not (klass, attr) in tp_as_dict:
                 # we didn't save this pointer
@@ -400,13 +414,13 @@ def curse(klass, attr, value, hide_from_dir=False):
     dikt = patchable_builtin(klass)
 
     old_value = dikt.get(attr, None)
-    old_name = '_c_%s' % attr   # do not use .format here, it breaks py2.{5,6}
+    old_name = '_c_%s' % attr  # do not use .format here, it breaks py2.{5,6}
 
     # Patch the thing
     dikt[attr] = value
 
     if old_value:
-        hide_from_dir = False   # It was already in dir
+        hide_from_dir = False  # It was already in dir
         dikt[old_name] = old_value
 
         try:
@@ -469,9 +483,11 @@ def curses(klass, name):
         >>> {'a': 1, 'b': 2}.banner()
         'This dict has 2 elements'
     """
+
     def wrapper(func):
         curse(klass, name, func)
         return func
+
     return wrapper
 
 
