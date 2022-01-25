@@ -49,11 +49,7 @@ from functools import wraps
 from collections import defaultdict
 from contextlib import contextmanager
 
-try:
-    import __builtin__
-except ImportError:
-    # Python 3 support
-    import builtins as __builtin__
+import builtins as __builtin__
 
 __version__ = '0.1.4'
 
