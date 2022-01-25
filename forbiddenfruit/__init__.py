@@ -1,5 +1,9 @@
-import gc
+import builtins as __builtin__
 import ctypes
+import gc
+import inspect
+from collections import defaultdict
+from contextlib import contextmanager
 from ctypes import (
     c_int,
     c_int64,
@@ -7,13 +11,7 @@ from ctypes import (
     c_void_p,
     pythonapi,
 )
-from typing import Callable
-import inspect
 from functools import wraps
-from collections import defaultdict
-from contextlib import contextmanager
-
-import builtins as __builtin__
 
 __version__ = '0.1.4'
 
