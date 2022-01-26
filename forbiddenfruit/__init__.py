@@ -13,8 +13,6 @@ from ctypes import (
 )
 from functools import wraps
 
-__version__ = '0.1.4'
-
 __all__ = 'curse', 'curses', 'reverse'
 
 Py_ssize_t = c_int64 if ctypes.sizeof(c_void_p) == 8 else c_int32
